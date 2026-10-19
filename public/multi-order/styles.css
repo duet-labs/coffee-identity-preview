@@ -43,8 +43,11 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 40px;
-  padding: 24px;
+  gap: clamp(24px, 4vh, 40px);
+  padding: max(24px, env(safe-area-inset-top))
+    max(16px, env(safe-area-inset-right))
+    max(24px, env(safe-area-inset-bottom))
+    max(16px, env(safe-area-inset-left));
 
   font-family: system-ui, -apple-system, sans-serif;
 
@@ -56,7 +59,9 @@ body {
 
 /* ---------- 3. Brand mark --------------------------------------------------- */
 
-img {
+.brand { width: 100%; text-align: center; }
+
+.brand img {
   /* Cap at 280px on desktop, shrink proportionally on narrow phones. */
   width: min(280px, 60vw);
   height: auto;
@@ -78,13 +83,16 @@ img {
   flex-direction: column;
   align-items: center;
   gap: 16px;
+  width: 100%;
+  max-width: 420px;
+  min-width: 0;
 }
 
 button.primary {
   background: #fff;
   color: #000;
   border: none;
-  padding: 18px 48px;
+  padding: 18px clamp(20px, 6vw, 48px);
   font-size: clamp(16px, 4vw, 18px);
   font-weight: 500;
   border-radius: 999px;
@@ -96,10 +104,12 @@ button.primary {
   -webkit-appearance: none;
   touch-action: manipulation;
   min-height: 56px;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
-button.primary:hover {
-  transform: scale(1.03);
+@media (hover: hover) {
+  button.primary:hover { transform: scale(1.02); }
 }
 
 button.primary:active {
@@ -112,11 +122,12 @@ button.link {
   background: transparent;
   color: #fff;
   border: none;
-  opacity: 0.55;
-  font-size: 13px;
+  opacity: 0.75;
+  font-size: 14px;
   letter-spacing: 0.5px;
   cursor: pointer;
-  padding: 4px 8px;
+  padding: 10px 12px;
+  min-height: 44px;
   text-decoration: underline;
   text-underline-offset: 3px;
   -webkit-appearance: none;
@@ -128,10 +139,18 @@ button.link:hover {
 }
 
 [hidden] { display: none !important; }
-form { width: min(420px, 88vw); display: grid; gap: 18px; }
+form { width: 100%; min-width: 0; display: grid; gap: 18px; }
 form h1 { font-size: 24px; margin: 0; }
 form p { margin: 0; color: #bbb; line-height: 1.5; }
 form label { display: grid; gap: 8px; font-size: 14px; }
 form input { width: 100%; border: 1px solid #666; border-radius: 8px; padding: 12px; background: #141414; color: #fff; font: inherit; font-size: 16px; }
 button:disabled { opacity: .5; cursor: wait; }
 :focus-visible { outline: 3px solid #a5b4fc; outline-offset: 4px; }
+#status { margin: 0; width: 100%; max-width: 360px; text-align: center; line-height: 1.5; overflow-wrap: anywhere; }
+
+/* Keep the start of a tall form reachable on small screens and with a keyboard. */
+@media (max-height: 700px) {
+  body { justify-content: flex-start; }
+  .brand img { width: min(220px, 60vw); }
+  .subtitle { margin: 8px 0 0; }
+}

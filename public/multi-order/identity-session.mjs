@@ -10,7 +10,8 @@ export function createIdentitySession({load, apply, onUnavailable, onIdentityCha
   async function perform() {
     try {
       const identity = await load();
-      if (!identity?.ok || !identity.user_id || !identity.signature || !Number.isInteger(identity.epoch)
+      const awaitingRegistration=identity?.registration_required===true && identity.registration_status==='unregistered';
+      if (!identity?.ok || !identity.user_id || (!identity.signature && !awaitingRegistration) || !Number.isInteger(identity.epoch)
         || !Number.isInteger(identity.server_time) || identity.epoch <= identity.server_time
         || !['registered', 'unregistered'].includes(identity.registration_status)) throw new Error('identity_unavailable');
       if (stopped) return current;
@@ -30,7 +31,7 @@ export function createIdentitySession({load, apply, onUnavailable, onIdentityCha
       return identity;
     } catch (error) {
       if (!stopped) {
-        onUnavailable({expired: !current || now() >= expiresAt});
+        onUnavailable({expired: !current || now() >= expiresAt, error: error.message});
         schedule(Math.min(60000, 1000 * 2 ** Math.min(failures++, 6)));
       }
       throw error;
