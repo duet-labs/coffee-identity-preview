@@ -18,7 +18,8 @@ function unavailable(expired = true) {
 async function boot() {
   if (!config?.apiUrl || !config.decagonSlug || !config.decagonLoaderUrl) throw new Error('configuration_missing');
   const preview = config.environment === 'identity-preview';
-  if (preview && (!config.decagonBranch || !config.apiUrl.endsWith('/coffee-identity-preview'))) throw new Error('preview_configuration_invalid');
+  const batchPreview = preview && config.previewKind === 'batch';
+  if (preview && (!config.decagonBranch || !config.apiUrl.endsWith(batchPreview ? '/coffee-batch-preview' : '/coffee-identity-preview'))) throw new Error('preview_configuration_invalid');
   if (preview) {
     const emailInput = document.getElementById('email');
     emailInput.readOnly = true;
@@ -29,7 +30,7 @@ async function boot() {
   let registrationMessage = '';
   document.getElementById('event-name').textContent = config.eventName;
   document.getElementById('event-subtitle').textContent = config.eventSubtitle;
-  const key = preview ? 'decagon-coffee-us-2950-identity-preview-token' : 'decagon-coffee-us-2950-browser-token';
+  const key = batchPreview ? 'decagon-coffee-us-2950-batch-preview-token' : preview ? 'decagon-coffee-us-2950-identity-preview-token' : 'decagon-coffee-us-2950-browser-token';
   let token;
   try { token = localStorage.getItem(key); } catch {}
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(token || '')) {
