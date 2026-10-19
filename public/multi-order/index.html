@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <title>Decagon Coffee</title>
+  <link rel="stylesheet" href="styles.css?v=1c13587adef8">
+</head>
+<body>
+  <div style="text-align:center">
+    <img src="Decagon_Logo_White.png" alt="Decagon">
+    <p class="subtitle" id="event-name">Decagon Coffee</p>
+    <p class="subtitle" id="event-subtitle">Your coffee, made to order</p>
+  </div>
+  <div class="actions">
+    <form id="registration" hidden>
+      <h1>Welcome to the coffee bar</h1>
+      <p id="registration-intro">Share your details once, then choose your drink.</p>
+      <label>Name<input id="name" name="name" autocomplete="name" maxlength="200" required></label>
+      <label><span id="email-label">Email</span><input id="email" name="email" type="email" autocomplete="email" maxlength="254" required></label>
+      <label>Company<input id="company" name="company" autocomplete="organization" maxlength="200" required></label>
+      <button class="primary" id="register-submit" type="submit">Continue to coffee</button>
+    </form>
+    <button class="primary" id="start-chat" disabled>Loading coffee bar…</button>
+    <button class="link" id="fresh-chat" hidden>Start a fresh chat</button>
+    <p id="status" role="status" style="max-width:360px;text-align:center"></p>
+    <button class="link" id="retry" hidden>Try again</button>
+  </div>
+  <script src="config.js?v=74e082a87813"></script>
+  <script type="module" src="app.js?v=3dffc118d75a"></script>
+</body>
+</html>

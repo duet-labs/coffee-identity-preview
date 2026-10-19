@@ -1,0 +1,137 @@
+/* =============================================================================
+ * Decagon Coffee — booth landing page styles
+ * -----------------------------------------------------------------------------
+ * Black background with a centered logo, subtitle, and two call-to-action
+ * buttons. Sizing is fluid (`clamp()`) so the page looks correct on the iPad
+ * at the booth as well as on whatever phone a visitor scans the QR code from.
+ *
+ * Sections:
+ *   1. Base reset      — global box-sizing and viewport defaults
+ *   2. Body layout     — full-bleed flex column, centered content
+ *   3. Brand mark      — logo + subtitle treatment
+ *   4. Action buttons  — primary CTA and the "fresh chat" recovery link
+ * =============================================================================
+ */
+
+/* ---------- 1. Base reset --------------------------------------------------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  /* Allow the body to fill the viewport so the flex centering below has room
+     to work. Without this, short content collapses to the top of the page. */
+  height: 100%;
+}
+
+/* ---------- 2. Body layout -------------------------------------------------- */
+
+body {
+  margin: 0;
+  /* 100dvh handles mobile browser chrome (Safari address bar) better than vh,
+     but we keep a 100% fallback for older WebViews that don't know `dvh`. */
+  min-height: 100%;
+  min-height: 100dvh;
+
+  background: #000;
+  color: #fff;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+  padding: 24px;
+
+  font-family: system-ui, -apple-system, sans-serif;
+
+  /* Stop iOS from auto-zooming text and keep tap highlights invisible so the
+     booth interaction feels app-like rather than web-like. */
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ---------- 3. Brand mark --------------------------------------------------- */
+
+img {
+  /* Cap at 280px on desktop, shrink proportionally on narrow phones. */
+  width: min(280px, 60vw);
+  height: auto;
+}
+
+.subtitle {
+  /* Fluid type so the subtitle scales with the viewport without media queries. */
+  font-size: clamp(12px, 3.5vw, 18px);
+  letter-spacing: clamp(2px, 1vw, 4px);
+  opacity: 0.7;
+  margin-top: 16px;
+  text-align: center;
+}
+
+/* ---------- 4. Action buttons ----------------------------------------------- */
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+button.primary {
+  background: #fff;
+  color: #000;
+  border: none;
+  padding: 18px 48px;
+  font-size: clamp(16px, 4vw, 18px);
+  font-weight: 500;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+
+  /* Reset iOS default button styling and guarantee a 56px tap target
+     (Apple HIG minimum is 44px; 56px is the booth target for gloves/wet hands). */
+  -webkit-appearance: none;
+  touch-action: manipulation;
+  min-height: 56px;
+}
+
+button.primary:hover {
+  transform: scale(1.03);
+}
+
+button.primary:active {
+  transform: scale(0.97);
+}
+
+button.link {
+  /* The "Trouble loading?" recovery button — deliberately understated so it
+     doesn't compete with the primary CTA but is still discoverable. */
+  background: transparent;
+  color: #fff;
+  border: none;
+  opacity: 0.55;
+  font-size: 13px;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  padding: 4px 8px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  -webkit-appearance: none;
+  touch-action: manipulation;
+}
+
+button.link:hover {
+  opacity: 0.85;
+}
+
+[hidden] { display: none !important; }
+form { width: min(420px, 88vw); display: grid; gap: 18px; }
+form h1 { font-size: 24px; margin: 0; }
+form p { margin: 0; color: #bbb; line-height: 1.5; }
+form label { display: grid; gap: 8px; font-size: 14px; }
+form input { width: 100%; border: 1px solid #666; border-radius: 8px; padding: 12px; background: #141414; color: #fff; font: inherit; font-size: 16px; }
+button:disabled { opacity: .5; cursor: wait; }
+:focus-visible { outline: 3px solid #a5b4fc; outline-offset: 4px; }
