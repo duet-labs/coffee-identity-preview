@@ -19,6 +19,14 @@ async function boot() {
   if (!config?.apiUrl || !config.decagonSlug || !config.decagonLoaderUrl) throw new Error('configuration_missing');
   const preview = config.environment === 'identity-preview';
   if (preview && (!config.decagonBranch || !config.apiUrl.endsWith('/coffee-identity-preview'))) throw new Error('preview_configuration_invalid');
+  if (preview) {
+    const emailInput = document.getElementById('email');
+    emailInput.readOnly = true;
+    emailInput.autocomplete = 'off';
+    document.getElementById('email-label').textContent = 'Test email';
+    document.getElementById('registration-intro').textContent = 'Use a test name and company. This preview uses a generated test email and a separate order queue.';
+  }
+  let registrationMessage = '';
   document.getElementById('event-name').textContent = config.eventName;
   document.getElementById('event-subtitle').textContent = config.eventSubtitle;
   const key = preview ? 'decagon-coffee-us-2950-identity-preview-token' : 'decagon-coffee-us-2950-browser-token';
@@ -78,9 +86,12 @@ async function boot() {
       if (preview && identity.environment !== 'identity-preview') throw new Error('preview_backend_mismatch');
       if (!widgetReady && preview && identity.registration_status === 'unregistered') {
         form.hidden = false;
-        document.getElementById('email').value ||= `coffee-preview-${crypto.randomUUID()}@example.invalid`;
+        const emailInput = document.getElementById('email');
+        if (!/^coffee-preview-[a-z0-9-]{8,64}@example\.invalid$/.test(emailInput.value)) {
+          emailInput.value = `coffee-preview-${crypto.randomUUID()}@example.invalid`;
+        }
         start.hidden = true;
-        status.textContent = 'Preview: use the suggested test email. Orders go to a separate test queue.';
+        status.textContent = registrationMessage || 'Preview: your test email is generated automatically.';
         retry.hidden = true;
         return;
       }
@@ -115,7 +126,8 @@ async function boot() {
     event.preventDefault();
     if (submit.disabled) return;
     submit.disabled = true;
-    status.textContent = 'Saving your details…';
+    registrationMessage = 'Saving your details…';
+    status.textContent = registrationMessage;
     try {
       await api('register', Object.fromEntries(new FormData(form)));
       // No widget or conversation exists yet. Reload resolves the saved profile.
@@ -127,7 +139,8 @@ async function boot() {
         preview_email_required: 'Use the suggested coffee-preview test email ending in @example.invalid.',
         registration_rate_limited: 'Too many registrations. Please try again in a few minutes.',
       };
-      status.textContent = messages[error.message] || 'We could not save your details. Please try again.';
+      registrationMessage = messages[error.message] || 'We could not save your details. Please try again.';
+      status.textContent = registrationMessage;
       submit.disabled = false;
     }
   };
