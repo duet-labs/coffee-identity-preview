@@ -86,7 +86,8 @@ async function boot() {
     widgetLoading = (async () => {
       if (document.readyState !== 'complete') await new Promise(resolve => window.addEventListener('load', resolve, {once: true}));
       await new Promise((resolve, reject) => {
-        const timer = setTimeout(() => reject(new Error('widget_timeout')), 20000);
+        let settled=false;
+        const timer = setTimeout(() => {settled=true;reject(new Error('widget_timeout'));}, 20000);
         const script = document.createElement('script');
         script.src = config.decagonLoaderUrl;
         script.dataset.slug = config.decagonSlug;
@@ -94,6 +95,14 @@ async function boot() {
         script.onerror = () => { clearTimeout(timer); reject(new Error('widget_unavailable')); };
         script.onload = () => {
           if (!window.duet) { clearTimeout(timer); reject(new Error('widget_unavailable')); return; }
+          const ready=()=>{
+            if(settled || widgetReady)return;
+            settled=true;clearTimeout(timer);
+            window.duet.setUserIdAuth(identity.signature,identity.epoch);
+            window.duet.setUserId(identity.user_id,false);
+            window.duet.addMetadata(metadata(identity));
+            widgetReady=true;resolve();
+          };
           window.duet.setEventListener(event => {
             if(event.eventName==='DUET_AUTH_FAILED') {
               if(Date.now()-lastAuthRefresh<5000)return;
@@ -101,14 +110,11 @@ async function boot() {
               void session.refresh().catch(()=>{});
               return;
             }
-            if (event.eventName !== 'DECAGON_LOADED' || widgetReady) return;
-            clearTimeout(timer);
-            window.duet.setUserIdAuth(identity.signature, identity.epoch);
-            window.duet.setUserId(identity.user_id, false);
-            window.duet.addMetadata(metadata(identity));
-            widgetReady = true;
-            resolve();
+            if(event.eventName==='DECAGON_LOADED')ready();
           });
+          // The deployed loader exposes isReady(); its event can precede this
+          // script's onload callback when resources are already cached.
+          if(window.duet.isReady?.())ready();
         };
         document.head.appendChild(script);
       });
@@ -181,13 +187,22 @@ async function boot() {
     submit.disabled = true;
     registrationMessage = 'Saving your details…';
     status.textContent = registrationMessage;
+    let saved=false;
     try {
       await api('register', Object.fromEntries(new FormData(form)));
+      saved=true;
       registrationMessage='';
       // No signed widget exists yet. Keep the in-memory token if storage is
       // unavailable, including private browsers, instead of losing it on reload.
-      await session.refresh();
+      const updated=await session.refresh();
+      // An automatic refresh may have started before registration completed.
+      if(updated?.registration_status==='unregistered')await session.refresh();
     } catch (error) {
+      if(saved) {
+        status.textContent='Your details are saved, but chat could not connect. Please try again.';
+        retry.hidden=false;submit.disabled=false;
+        return;
+      }
       if(error.message==='profile_required') {
         needsProfile=true;profileFields(true);
         registrationMessage='Welcome! Add your name and company to finish signing up.';
@@ -200,6 +215,7 @@ async function boot() {
         browser_email_change_not_allowed: 'This browser is already registered with another email. Please reload to continue.',
         preview_email_required: 'Use the suggested coffee-preview test email ending in @example.invalid.',
         registration_rate_limited: 'Too many registrations. Please try again in a few minutes.',
+        registration_not_enabled: 'Registration is paused. Please ask at the counter for help.',
         identity_email_unavailable: 'We could not register that email. Please ask at the counter for help.',
         client_upgrade_required: 'Please reload this page to continue.',
       };
